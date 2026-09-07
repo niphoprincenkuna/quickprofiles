@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QuickProfiles — Profile Preview</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="topbar no-print">
+  <div class="logo-mark"><img src="assets/logo.png" alt="QuickProfiles" /></div>
+  <div class="logo-text">Quick<span>Profiles</span></div>
+</div>
+
+<main>
+  <h1 class="no-print">Profile ready</h1>
+  <p class="subtitle no-print">Review the profile below, then print it to save a PDF copy.</p>
+
+  <div class="profile-sheet" id="profileSheet"></div>
+
+  <div class="actions-row no-print">
+    <button class="btn btn-danger-outline" id="resetBtn">Reset / New candidate</button>
+    <button class="btn btn-primary" id="printBtn">Print / Save as PDF</button>
+  </div>
+</main>
+
+<script src="app.js"></script>
+<script>
+  requireAnswers();
+
+  const company = QP.getCompany();
+  const profile = QP.getProfile();
+  const code = QP.getType();
+
+  document.getElementById("profileSheet").innerHTML = `
+    <img class="profile-logo" src="${company.logo}" alt="${company.name} logo" />
+    <div class="profile-doc-title">Company Profile</div>
+
+    <img class="profile-photo" src="${profile.photo}" alt="Candidate photo" />
+
+    <div class="section-title">Personal Information</div>
+    <table class="info-table">
+      <tr><td class="label">Name</td><td class="value">${profile.firstNames}</td></tr>
+      <tr><td class="label">Surname</td><td class="value">${profile.surname}</td></tr>
+      <tr><td class="label">ID Number</td><td class="value">${profile.idNumber}</td></tr>
+      <tr><td class="label">Qualification</td><td class="value">${profile.qualification}</td></tr>
+      <tr><td class="label">Company</td><td class="value">${company.name}</td></tr>
+    </table>
+
+    <div class="section-title">Personality Assessment</div>
+    <table class="info-table">
+      <tr><td class="label">Type</td><td class="value"><span class="type-code">${code}</span></td></tr>
+      <tr><td class="label">Traits</td><td class="value">${typeDescription(code)}</td></tr>
+    </table>
+  `;
+
+  document.getElementById("printBtn").addEventListener("click", () => window.print());
+  wireResetButton(document.getElementById("resetBtn"));
+</script>
+
+</body>
+</html>

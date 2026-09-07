@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QuickProfiles — Candidate Profile</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-mark"><img src="assets/logo.png" alt="QuickProfiles" /></div>
+  <div class="logo-text">Quick<span>Profiles</span></div>
+  <div class="company-banner" id="companyBanner"></div>
+</div>
+
+<main>
+  <h1>Create your profile</h1>
+  <p class="subtitle">Take a photo and fill in your details. This information stays on this device only.</p>
+
+  <div class="card">
+
+    <label>Photo</label>
+    <div class="camera-box" id="cameraBox">
+      <div class="camera-hint" id="cameraHint">Starting camera…</div>
+    </div>
+    <div class="camera-controls">
+      <button class="btn btn-secondary" id="captureBtn" style="display:none;">Capture photo</button>
+      <button class="btn btn-secondary" id="retakeBtn" style="display:none;">Retake</button>
+    </div>
+
+    <label for="firstNames">First name(s)</label>
+    <input type="text" id="firstNames" />
+    <div class="error-text">Please enter first name(s).</div>
+
+    <label for="surname">Surname</label>
+    <input type="text" id="surname" />
+    <div class="error-text">Please enter a surname.</div>
+
+    <label for="idNumber">ID Number</label>
+    <input type="text" id="idNumber" inputmode="numeric" />
+    <div class="error-text">Please enter a valid ID number (numbers only).</div>
+
+    <label for="qualification">Qualification</label>
+    <input type="text" id="qualification" placeholder="e.g. BCom Accounting" />
+    <div class="error-text">Please enter a qualification.</div>
+
+    <div class="actions-row">
+      <button class="btn btn-primary" id="continueBtn">Continue to personality test</button>
+    </div>
+  </div>
+</main>
+
+<script src="app.js"></script>
+<script>
+  requireCompany();
+  const company = QP.getCompany();
+  document.getElementById("companyBanner").textContent = "Applying for: " + company.name;
+
+  /* ---------- camera ---------- */
+  const cameraBox = document.getElementById("cameraBox");
+  const cameraHint = document.getElementById("cameraHint");
+  const captureBtn = document.getElementById("captureBtn");
+  const retakeBtn = document.getElementById("retakeBtn");
+  let stream = null;
+  let photoDataUrl = null;
+  let videoEl = null;
+
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      videoEl = document.createElement("video");
+      videoEl.autoplay = true;
+      videoEl.playsInline = true;
+      videoEl.srcObject = stream;
+      cameraBox.innerHTML = "";
+      cameraBox.appendChild(videoEl);
+      captureBtn.style.display = "inline-block";
+      retakeBtn.style.display = "none";
+    } catch (err) {
+      cameraBox.innerHTML = `<div class="camera-hint">Camera access is required to capture a photo.<br>Please allow camera permission and reload this page.</div>`;
+    }
+  }
+
+  captureBtn.addEventListener("click", () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    canvas.getContext("2d").drawImage(videoEl, 0, 0);
+    photoDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+
+    const img = document.createElement("img");
+    img.src = photoDataUrl;
+    cameraBox.innerHTML = "";
+    cameraBox.appendChild(img);
+
+    captureBtn.style.display = "none";
+    retakeBtn.style.display = "inline-block";
+
+    if (stream) stream.getTracks().forEach(t => t.stop());
+  });
+
+  retakeBtn.addEventListener("click", () => {
+    photoDataUrl = null;
+    startCamera();
+  });
+
+  startCamera();
+
+  /* ---------- form validation + continue ---------- */
+  document.getElementById("continueBtn").addEventListener("click", () => {
+    const firstNames = document.getElementById("firstNames");
+    const surname = document.getElementById("surname");
+    const idNumber = document.getElementById("idNumber");
+    const qualification = document.getElementById("qualification");
+
+    let valid = true;
+
+    [firstNames, surname, qualification].forEach(input => {
+      const bad = input.value.trim().length === 0;
+      toggleFieldError(input, bad);
+      if (bad) valid = false;
+    });
+
+    const idBad = !/^[0-9]{6,}$/.test(idNumber.value.trim());
+    toggleFieldError(idNumber, idBad);
+    if (idBad) valid = false;
+
+    if (!photoDataUrl) {
+      alert("Please capture a photo before continuing.");
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    QP.setProfile({
+      firstNames: firstNames.value.trim(),
+      surname: surname.value.trim(),
+      idNumber: idNumber.value.trim(),
+      qualification: qualification.value.trim(),
+      photo: photoDataUrl
+    });
+
+    window.location.href = "test.html";
+  });
+
+  function toggleFieldError(input, hasError) {
+    input.style.borderColor = hasError ? "#C0392B" : "";
+    const err = input.nextElementSibling;
+    if (err && err.classList.contains("error-text")) {
+      err.style.display = hasError ? "block" : "none";
+    }
+  }
+</script>
+
+</body>
+</html>

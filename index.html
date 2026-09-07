@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QuickProfiles — Select Company</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  /* Page-specific overrides for the company selection grid — only affects index.html */
+  .company-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .company-option {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 18px;
+    padding: 32px 20px;
+  }
+
+  .company-option .company-badge {
+    width: 150px;
+    height: 150px;
+    border-radius: 16px;
+  }
+
+  .company-option .company-badge img {
+    padding: 14px;
+  }
+
+  .company-option .name {
+    font-size: 15px;
+  }
+
+  @media (max-width: 640px) {
+    .company-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-mark"><img src="assets/logo.png" alt="QuickProfiles" /></div>
+  <div class="logo-text">Quick<span>Profiles</span></div>
+</div>
+
+<main>
+  <h1>Welcome</h1>
+  <p class="subtitle">Please select the company you are applying for to begin your candidate profile.</p>
+
+  <div class="company-grid" id="companyGrid"></div>
+</main>
+
+<script src="app.js"></script>
+<script>
+  const grid = document.getElementById("companyGrid");
+
+  COMPANIES.forEach(company => {
+    const btn = document.createElement("button");
+    btn.className = "company-option";
+    btn.innerHTML = `
+      <div class="company-badge"><img src="${company.logo}" alt="${company.name} logo" /></div>
+      <div class="name">${company.name}</div>
+    `;
+    btn.addEventListener("click", () => {
+      QP.setCompany(company);
+      window.location.href = "profile.html";
+    });
+    grid.appendChild(btn);
+  });
+</script>
+
+</body>
+</html>

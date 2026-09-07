@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QuickProfiles — Personality Test</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-mark"><img src="assets/logo.png" alt="QuickProfiles" /></div>
+  <div class="logo-text">Quick<span>Profiles</span></div>
+  <div class="company-banner" id="companyBanner"></div>
+</div>
+
+<main>
+  <h1>Personality test</h1>
+  <p class="subtitle">Answer honestly — there are no right or wrong answers. Select how much you agree with each statement.</p>
+
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-label" id="progressLabel">Question 1 of 35</div>
+
+  <div class="card">
+    <div class="question-text" id="questionText"></div>
+
+    <div class="scale" id="scale"></div>
+
+    <div class="actions-row">
+      <button class="btn btn-secondary" id="backBtn">Back</button>
+      <button class="btn btn-primary" id="nextBtn" disabled>Next</button>
+    </div>
+  </div>
+</main>
+
+<script src="app.js"></script>
+<script>
+  requireProfile();
+  const company = QP.getCompany();
+  document.getElementById("companyBanner").textContent = "Applying for: " + company.name;
+
+  const labels = ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"];
+
+  let answers = QP.getAnswers();
+  let index = 0; // current question index
+
+  const questionText = document.getElementById("questionText");
+  const scale = document.getElementById("scale");
+  const nextBtn = document.getElementById("nextBtn");
+  const backBtn = document.getElementById("backBtn");
+  const progressFill = document.getElementById("progressFill");
+  const progressLabel = document.getElementById("progressLabel");
+
+  function render() {
+    const q = QUESTIONS[index];
+    questionText.textContent = q.text;
+    scale.innerHTML = "";
+
+    const current = answers[q.id];
+
+    labels.forEach((label, i) => {
+      const val = i + 1;
+      const opt = document.createElement("button");
+      opt.className = "scale-option" + (current === val ? " selected" : "");
+      opt.innerHTML = `<div class="dot"></div>${label}`;
+      opt.addEventListener("click", () => {
+        answers[q.id] = val;
+        QP.setAnswers(answers);
+        render();
+      });
+      scale.appendChild(opt);
+    });
+
+    nextBtn.disabled = current === undefined;
+    nextBtn.textContent = index === QUESTIONS.length - 1 ? "Finish test" : "Next";
+    backBtn.style.visibility = index === 0 ? "hidden" : "visible";
+
+    progressFill.style.width = Math.round(((index + 1) / QUESTIONS.length) * 100) + "%";
+    progressLabel.textContent = `Question ${index + 1} of ${QUESTIONS.length}`;
+  }
+
+  nextBtn.addEventListener("click", () => {
+    if (index < QUESTIONS.length - 1) {
+      index++;
+      render();
+    } else {
+      const code = computeType(answers);
+      QP.setType(code);
+      window.location.href = "preview.html";
+    }
+  });
+
+  backBtn.addEventListener("click", () => {
+    if (index > 0) {
+      index--;
+      render();
+    }
+  });
+
+  render();
+</script>
+
+</body>
+</html>
